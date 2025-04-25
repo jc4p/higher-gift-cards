@@ -1,8 +1,8 @@
 import MainPage from './main-page';
 
 export const metadata = {
-  title: 'EREW-$HIGHER Gift Card',
-  description: 'Not in any way affiliated with Erewhon, just selling you a gift card.',
+  title: 'Erewhon Gift Card',
+  description: 'Buy a gift card in $HIGHER. Not in any way affiliated with Erewhon, just selling you a gift card.',
   other: {
     'fc:frame': JSON.stringify({
       version: 'next',
@@ -11,7 +11,7 @@ export const metadata = {
         title: 'Mint Gift Card',
         action: {
           type: 'launch_frame',
-          name: 'erew-higher-gift-card',
+          name: 'Erewhon Gift Card',
           url: process.env.NEXT_PUBLIC_APP_URL || '',
           splashImageUrl: '<SPLASH_IMAGE_URL>',
           splashBackgroundColor: '#000000'

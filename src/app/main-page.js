@@ -114,37 +114,7 @@ export default function MainPage() {
           ?
         </button>
       </div>
-      <h1 className={styles.title}>EREW-$HIGHER Gift Card</h1>
-      
-      {/* Collection indicator and price */}
-      <div className={styles.collectionIndicator}>
-        <span className={styles.collectionNumber}>
-          {count !== null ? `${count + 1}/5` : '1/5'}
-        </span>
-        <div className={styles.priceInfo}>
-          {count !== null && count < 5 ? (
-            <>
-              <p className={styles.priceLine}>
-                <strong>Price:</strong> {PRICE_DATA[count].roundedHigher} $HIGHER
-              </p>
-              <p className={styles.priceLine}>
-                <strong>≈</strong> ${PRICE_DATA[count].approxUsd}
-              </p>
-            </>
-          ) : (
-            <>
-              <p className={styles.priceLine}>
-                <strong>Price:</strong> {PRICE_DATA[0].roundedHigher} $HIGHER
-              </p>
-              <p className={styles.priceLine}>
-                <strong>≈</strong> ${PRICE_DATA[0].approxUsd}
-              </p>
-            </>
-          )}
-        </div>
-      </div>
-      
-      <p className={styles.subtitle}>Value: $25.</p>
+      <h1 className={styles.title}>$25 EREWHON GIFT CARD</h1>
       <p className={styles.subtitle}>Gift cards are usable IN STORE ONLY.</p>
       
       {/* Modal */}
@@ -201,7 +171,36 @@ export default function MainPage() {
           }}
           priority
         />
+        
+        {/* Collection indicator overlay */}
+        <div className={styles.collectionOverlay}>
+          <span className={styles.collectionNumber}>
+            {count !== null ? `${count + 1}/5` : '1/5'}
+          </span>
+          <div className={styles.priceInfo}>
+            {count !== null && count < 5 ? (
+              <>
+                <p className={styles.priceLine}>
+                  <strong>Price:</strong> {PRICE_DATA[count].roundedHigher} $HIGHER
+                </p>
+                <p className={styles.priceLine}>
+                  <strong>≈</strong> ${PRICE_DATA[count].approxUsd}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className={styles.priceLine}>
+                  <strong>Price:</strong> {PRICE_DATA[0].roundedHigher} $HIGHER
+                </p>
+                <p className={styles.priceLine}>
+                  <strong>≈</strong> ${PRICE_DATA[0].approxUsd}
+                </p>
+              </>
+            )}
+          </div>
+        </div>
       </div>
+      
       {message && <p className={styles.message}>{message}</p>}
       <button
         className={`${styles.button} ${styles.mintButton}`}
