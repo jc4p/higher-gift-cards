@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+ # EREW-$HIGHER Gift Card
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ Minimalist Next.js (vanilla JavaScript) app to mint Erewhon gift card NFTs.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+ ## Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+ - Single-page UI styled in black/brown, clean typography.
+ - Mint via Farcaster Frame on Base Mainnet.
+ - Share your mint with a button.
+ - Track purchase count (max 5) in NeonDB/Postgres.
+ - Configurable pricing schedule per purchase.
+ - Mobile-friendly (<480px) in Farcaster Frame.
 
-## Learn More
+ ## Setup
 
-To learn more about Next.js, take a look at the following resources:
+ Requirements:
+ - Node.js 14+
+ - PostgreSQL (NeonDB) for tracking purchases.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+ Environment Variables (in `.env.local`):
+ - `DATABASE_URL` – Postgres connection string.
+ - `NEXT_PUBLIC_CONTRACT_ADDRESS` – NFT contract address.
+ - `NEXT_PUBLIC_APP_URL` – Public URL for Frame metadata.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+ Install dependencies:
+ ```bash
+ npm install
+ npm install @farcaster/frame-sdk
+ ```
 
-## Deploy on Vercel
+ Run development server:
+ ```bash
+ npm run dev
+ ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+ Visit http://localhost:3000.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+ ## Database
+
+ The app auto-creates a `purchases` table. To inspect or reset:
+ ```sql
+ CREATE TABLE IF NOT EXISTS purchases (
+   id SERIAL PRIMARY KEY,
+   wallet_address TEXT NOT NULL,
+   tx_hash TEXT NOT NULL,
+   created_at TIMESTAMP DEFAULT NOW()
+ );
+ ```
+
+ ## Configuration
+
+ - In `src/app/main-page.js`, fill in:
+   - `PRICE_SCHEDULE` (hex Wei values per purchase).
+   - `MINT_CALL_DATA` (encoded mint function call data).
+ - Set `NEXT_PUBLIC_CONTRACT_ADDRESS` in `.env.local`.
+ - (Optional) Set `NEXT_PUBLIC_APP_URL` for Frame button metadata.
+
+ ## Disclaimer
+ Not in any way affiliated with Erewhon; this is a fan-made gift card builder.
