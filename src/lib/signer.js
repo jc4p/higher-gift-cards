@@ -1,7 +1,7 @@
 /**
  * Utilities for transaction verification and signature generation
  */
-import { ethers, getBytes } from 'ethers';
+import { keccak256, encodePacked, privateKeyToAccount } from 'viem';
 
 /**
  * Verify a HIGHER token transfer transaction
@@ -145,51 +145,51 @@ export async function verifyHigherTransfer(txHash, recipient, amount, sender) {
 }
 
 /**
- * Generate a signature for verified minting
- * @param {string} txHash - The verified transaction hash
+ * Generate a signature for verified minting using viem
+ * @param {string} txHash - The verified transaction hash (0x-prefixed)
  * @param {string} minterAddress - The address that will call the mint function (msg.sender)
- * @param {number} tokenId - The token ID to mint
- * @returns {Promise<string>} - The signature
+ * @param {number | bigint} tokenId - The token ID to mint
+ * @returns {Promise<string>} - The signature as a hex string (0x-prefixed)
  */
 export async function generateMintSignature(txHash, minterAddress, tokenId) {
   try {
     const privateKey = process.env.SIGNER_PRIVATE_KEY;
-    if (!privateKey) {
-      throw new Error('SIGNER_PRIVATE_KEY is not set');
+    if (!privateKey || !privateKey.startsWith('0x')) {
+      // Viem requires 0x prefix for private keys
+      throw new Error('SIGNER_PRIVATE_KEY is not set or is invalid (must start with 0x)');
     }
-    
-    // Create a wallet from the private key
-    const wallet = new ethers.Wallet(privateKey);
-    
-    // Create the message hash
-    // This must match what the contract does: 
-    // keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n84", txHash, msg.sender, tokenId))
-    
-    // Format txHash as bytes32
+
+    // Create a viem account object from the private key
+    const account = privateKeyToAccount(privateKey);
+
+    // Ensure txHash is 0x prefixed (should be already, but good practice)
     const txHashHex = txHash.startsWith('0x') ? txHash : `0x${txHash}`;
+
+    // Define the message structure matching the contract
+    const messageLength = 84; // Same as contract
+    const prefix = `\x19Ethereum Signed Message:\n${messageLength}`;
     
-    // Use ethers.js to sign the message
-    // We need to match exactly what the contract expects
-    const messageLength = 84; // Length specified in the contract
-    const message = ethers.solidityPacked(
+    // Pack the data exactly like abi.encodePacked in the contract
+    // Use BigInt for uint256
+    const packedData = encodePacked(
       ['string', 'bytes32', 'address', 'uint256'],
-      [
-        `\x19Ethereum Signed Message:\n${messageLength}`,
-        txHashHex,
-        minterAddress,
-        tokenId
-      ]
+      [prefix, txHashHex, minterAddress, BigInt(tokenId)]
     );
-    
-    // Hash the message
-    const messageHash = ethers.keccak256(message);
-    
-    // Sign the raw hash (not the message itself) using ethers v6 syntax
-    const signature = await wallet.signMessage(getBytes(messageHash));
+
+    // Hash the packed data (equivalent to keccak256 in Solidity)
+    const messageHash = keccak256(packedData);
+
+    // Sign the hash directly (contract uses tryRecover on the hash)
+    const signature = await account.signHash(messageHash);
+
+    console.log('[DEBUG viem signer] Hashing Data:', { txHashHex, minterAddress, tokenId: BigInt(tokenId) });
+    console.log('[DEBUG viem signer] Message Hash:', messageHash);
+    console.log('[DEBUG viem signer] Generated Signature:', signature);
     
     return signature;
+
   } catch (error) {
-    console.error('Error generating signature:', error);
+    console.error('[VIEM] Error generating signature:', error);
     throw error;
   }
 } 

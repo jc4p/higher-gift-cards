@@ -1,5 +1,4 @@
 import * as frame from '@farcaster/frame-sdk';
-import { getBytes, hexlify, zeroPad, toBigInt } from 'ethers'; // Import ethers v6 functions
 import { encodeFunctionData, parseAbiItem } from 'viem'; // Import viem functions
 
 // Base Mainnet chain ID
