@@ -8,7 +8,7 @@ export const metadata = {
       version: 'next',
       imageUrl: 'https://cover-art.kasra.codes/erewhon-rectangle.png',
       button: {
-        title: 'Mint Gift Card',
+        title: 'Buy Gift Card',
         action: {
           type: 'launch_frame',
           name: 'EREW-HIGHER Gift Card',

@@ -9,7 +9,17 @@ const BASE_CHAIN_HEX = '0x2105';
  * Initialize Farcaster Frame if in a frame context
  */
 export async function initializeFrame() {
-  const user = await frame.sdk.context.user;
+  const context = await frame.sdk.context;
+  if (!context || !context.user) {
+    return;
+  }
+
+  let user = context.user;
+
+  if (user.user) {
+    user = user.user;
+  }
+
   if (!user || !user.fid) {
     // Not running inside a Farcaster frame
     return;
