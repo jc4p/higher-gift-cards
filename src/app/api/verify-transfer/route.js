@@ -3,7 +3,7 @@ import { verifyHigherTransfer, generateMintSignature } from '@/lib/signer';
 import { getNextTokenId } from '@/lib/db';
 
 // Wallet address that should receive the HIGHER tokens
-const RECIPIENT_ADDRESS = process.env.HIGHER_RECIPIENT_ADDRESS || '0x0000000000000000000000000000000000000000';
+const RECIPIENT_ADDRESS = process.env.HIGHER_RECIPIENT_ADDRESS || '0x0db12c0a67bc5b8942ea3126a465d7a0b23126c7';
 
 // HIGHER token amounts for each tier - must match the frontend
 const PRICE_DATA = [
