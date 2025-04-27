@@ -38,7 +38,7 @@ export async function POST(request) {
     // Determine the image URL based on the token ID (1-5)
     // Different images for each position in the collection
     const position = Math.min(tokenId, 5);
-    const imageUrl = `/images/gift-card-${position}.png`;
+    const imageUrl = `https://images.kasra.codes/erewhon-nfts/smoothie-${position}.png`;
     
     // Fixed face value USD for all gift cards
     const faceValueUsd = 25;
