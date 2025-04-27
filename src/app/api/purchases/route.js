@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getPurchaseCount, recordPurchase } from '@/lib/db';
 import { extractTokenIdFromTx } from '@/lib/alchemy';
 
+const runtime = 'edge';
+
 /**
  * GET /api/purchases - return total number of purchases
  */

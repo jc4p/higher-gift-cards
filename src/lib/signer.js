@@ -180,8 +180,8 @@ export async function generateMintSignature(txHash, minterAddress, tokenId) {
     // Hash the packed data (equivalent to keccak256 in Solidity)
     const messageHash = keccak256(packedData);
 
-    // Sign the hash directly using the sign utility
-    const signature = await sign({ hash: messageHash, privateKey });
+    // Sign the hash directly using the sign utility, requesting a hex output
+    const signature = await sign({ hash: messageHash, privateKey, to: 'hex' });
 
     console.log('[DEBUG viem signer] Hashing Data:', { txHashHex, minterAddress, tokenId: BigInt(tokenId) });
     console.log('[DEBUG viem signer] Message Hash:', messageHash);

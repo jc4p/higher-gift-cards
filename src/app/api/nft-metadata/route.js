@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { recordNftMetadata } from '@/lib/db';
 
+const runtime = 'edge';
+
 /**
  * POST /api/nft-metadata
  * Records metadata for a newly minted NFT and triggers gift card email

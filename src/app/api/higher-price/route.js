@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getHigherTokenPrice } from '@/lib/kv';
 
+const runtime = 'edge';
+
 // Default price if everything fails
 const FALLBACK_PRICE = 0.00562;
 
