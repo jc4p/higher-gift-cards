@@ -1,7 +1,8 @@
 /**
  * Utilities for transaction verification and signature generation
  */
-import * as viem from 'viem';
+import { keccak256, encodePacked } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 
 /**
  * Verify a HIGHER token transfer transaction
@@ -159,8 +160,8 @@ export async function generateMintSignature(txHash, minterAddress, tokenId) {
       throw new Error('SIGNER_PRIVATE_KEY is not set or is invalid (must start with 0x)');
     }
 
-    // Access functions via the viem namespace
-    const account = viem.privateKeyToAccount(privateKey);
+    // Create a viem account object from the private key
+    const account = privateKeyToAccount(privateKey);
 
     // Ensure txHash is 0x prefixed (should be already, but good practice)
     const txHashHex = txHash.startsWith('0x') ? txHash : `0x${txHash}`;
@@ -171,13 +172,13 @@ export async function generateMintSignature(txHash, minterAddress, tokenId) {
     
     // Pack the data exactly like abi.encodePacked in the contract
     // Use BigInt for uint256
-    const packedData = viem.encodePacked(
+    const packedData = encodePacked(
       ['string', 'bytes32', 'address', 'uint256'],
       [prefix, txHashHex, minterAddress, BigInt(tokenId)]
     );
 
     // Hash the packed data (equivalent to keccak256 in Solidity)
-    const messageHash = viem.keccak256(packedData);
+    const messageHash = keccak256(packedData);
 
     // Sign the hash directly (contract uses tryRecover on the hash)
     const signature = await account.signHash(messageHash);
