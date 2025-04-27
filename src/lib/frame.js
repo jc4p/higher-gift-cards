@@ -175,7 +175,9 @@ export async function mintGiftCardWithVerification({ contractAddress, txHash, to
   const encodedTokenId = zeroPad(hexlify(tokenIdBigInt), 32).slice(2);
 
   // 3. Prepare dynamic parameter (signature)
+  console.log('[DEBUG] Signature right before getBytes:', signature); // Add log immediately before
   const signatureBytes = getBytes(signature); // Convert hex string to byte array
+  console.log('[DEBUG] Signature after getBytes call'); // Add log immediately after
   const signatureLength = signatureBytes.length;
 
   // 4. Calculate offset and length for the dynamic parameter
