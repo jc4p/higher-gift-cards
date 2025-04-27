@@ -3,19 +3,13 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import styles from './page.module.css';
 import { transferHigher, mintGiftCardWithVerification } from '@/lib/frame';
+import * as frame from '@farcaster/frame-sdk';
 
 // Constants from environment variables
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '<CONTRACT_ADDRESS>';
+const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x0d8Cd006C310d537Bd84ba5d649c93EC16abAB97';
 const HIGHER_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_HIGHER_TOKEN_ADDRESS || '0x0578d8a44db98b23bf096a382e016e29a5ce0ffe';
-const HIGHER_RECIPIENT_ADDRESS = process.env.NEXT_PUBLIC_HIGHER_RECIPIENT_ADDRESS || '<RECIPIENT_ADDRESS>';
-
-// Price schedule per consecutive gift card purchase (hex Wei strings)
-// e.g., ['0x2386f26fc10000', '0x47dfe56fe20000', ...]
-const PRICE_SCHEDULE = [
-  /* TODO: fill in price hex values per purchase (wei) */
-];
-// Encoded call data for your contract's mint function
-const MINT_CALL_DATA = '<MINT_FUNCTION_CALL_DATA>';
+const HIGHER_RECIPIENT_ADDRESS = process.env.NEXT_PUBLIC_HIGHER_RECIPIENT_ADDRESS || '0x0db12C0A67bc5B8942ea3126a465d7a0b23126C7';
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://erew-higher.kasra.codes';
 
 // HIGHER token amounts for each tier
 const PRICE_DATA = [
@@ -25,16 +19,6 @@ const PRICE_DATA = [
   { sale: 4, roundedHigher: 35600 },
   { sale: 5, roundedHigher: 71150 },
 ];
-
-// Helper to get ordinal suffix
-function getOrdinalSuffix(i) {
-  const j = i % 10,
-    k = i % 100;
-  if (j === 1 && k !== 11) return 'st';
-  if (j === 2 && k !== 12) return 'nd';
-  if (j === 3 && k !== 13) return 'rd';
-  return 'th';
-}
 
 export default function MainPage() {
   const [count, setCount] = useState(null);
@@ -186,7 +170,8 @@ export default function MainPage() {
           purchasePriceHigher: price.roundedHigher,
           ownerAddress: from,
           paymentTx: txHash, 
-          mintTx: mintResult.txHash
+          mintTx: mintResult.txHash,
+          email: userEmail
         })
       });
       
@@ -212,20 +197,21 @@ export default function MainPage() {
   };
 
   const handleShare = async () => {
-    const shareData = {
-      title: 'EREW-$HIGHER Gift Card',
-      text: 'Check out my Erewhon Gift Card NFT!',
-      url: window.location.href,
-    };
+    const targetText = 'Check it out: Erewhon Gift Cards available in $HIGHER!';
+    const targetURL = BASE_URL;
+
+    // Construct the Warpcast compose intent URL
+    const finalUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(targetText)}&embeds[]=${encodeURIComponent(targetURL)}`;
+    
     try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        await navigator.clipboard.writeText(window.location.href);
-        alert('Link copied to clipboard');
+      // Use Frame SDK to open the compose intent URL
+      try {
+        await frame.sdk.actions.openUrl({ url: finalUrl });
+      } catch (err) {
+        await frame.sdk.actions.openUrl(finalUrl);
       }
     } catch (err) {
-      console.error(err);
+      console.error('Error opening Warpcast compose intent:', err);
     }
   };
 

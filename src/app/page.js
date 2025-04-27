@@ -6,15 +6,15 @@ export const metadata = {
   other: {
     'fc:frame': JSON.stringify({
       version: 'next',
-      imageUrl: '<PREVIEW_IMAGE_URL>',
+      imageUrl: 'https://cover-art.kasra.codes/erewhon-rectangle.png',
       button: {
         title: 'Mint Gift Card',
         action: {
           type: 'launch_frame',
-          name: 'Erewhon Gift Card',
-          url: process.env.NEXT_PUBLIC_APP_URL || '',
-          splashImageUrl: '<SPLASH_IMAGE_URL>',
-          splashBackgroundColor: '#000000'
+          name: 'EREW-HIGHER Gift Card',
+          url: process.env.NEXT_PUBLIC_APP_URL || 'https://erew-higher.kasra.codes',
+          splashImageUrl: 'https://cover-art.kasra.codes/erewhon-square.png',
+          splashBackgroundColor: '#C15E24'
         }
       }
     })

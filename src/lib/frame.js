@@ -21,6 +21,31 @@ export async function initializeFrame() {
 }
 
 /**
+ * Helper function to check and switch network if needed
+ * @param {object} provider - Frame SDK ethProvider
+ */
+async function ensureBaseNetwork(provider) {
+  if (!provider) {
+    throw new Error('Provider not available');
+  }
+  // Check current chain
+  let chainIdHex = await provider.request({ method: 'eth_chainId' });
+  const chainId = typeof chainIdHex === 'number' ? chainIdHex : parseInt(chainIdHex, 16);
+  
+  if (chainId !== BASE_CHAIN_ID) {
+    console.log(`Switching network from ${chainId} to Base (${BASE_CHAIN_ID})`);
+    // Switch to Base Mainnet
+    await provider.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: BASE_CHAIN_HEX }],
+    });
+    console.log('Network switched to Base');
+  } else {
+    console.log('Already on Base network');
+  }
+}
+
+/**
  * Convert ETH amount to Wei hex string
  * @param {number} eth - Amount in ETH
  * @returns {string} - Hex string with 0x prefix
@@ -53,17 +78,20 @@ export async function transferHigher({ recipient, amount, tokenAddress }) {
   if (!frame.sdk || !frame.sdk.wallet || !frame.sdk.wallet.ethProvider) {
     throw new Error('Frame SDK not initialized');
   }
-
-  // Get the user's wallet address
-  const accounts = await frame.sdk.wallet.ethProvider.request({
-    method: 'eth_requestAccounts'
-  });
+  
+  const provider = frame.sdk.wallet.ethProvider;
+  
+  // Request user to connect accounts
+  const accounts = await provider.request({ method: 'eth_requestAccounts' });
   
   if (!accounts || !accounts[0]) {
     throw new Error('No wallet connected');
   }
 
   const from = accounts[0];
+  
+  // Ensure user is on Base network
+  await ensureBaseNetwork(provider);
 
   // ERC20 transfer function signature: transfer(address,uint256)
   const transferFunctionSignature = '0xa9059cbb';
@@ -80,7 +108,7 @@ export async function transferHigher({ recipient, amount, tokenAddress }) {
   const data = `${transferFunctionSignature}${recipientPadded}${paddedAmount}`;
   
   // Send the transaction
-  const txHash = await frame.sdk.wallet.ethProvider.request({
+  const txHash = await provider.request({
     method: 'eth_sendTransaction',
     params: [{
       from,
@@ -106,17 +134,20 @@ export async function mintGiftCardWithVerification({ contractAddress, txHash, to
   if (!frame.sdk || !frame.sdk.wallet || !frame.sdk.wallet.ethProvider) {
     throw new Error('Frame SDK not initialized');
   }
+  
+  const provider = frame.sdk.wallet.ethProvider;
 
-  // Get the user's wallet address
-  const accounts = await frame.sdk.wallet.ethProvider.request({
-    method: 'eth_requestAccounts'
-  });
+  // Request user to connect accounts
+  const accounts = await provider.request({ method: 'eth_requestAccounts' });
   
   if (!accounts || !accounts[0]) {
     throw new Error('No wallet connected');
   }
 
   const from = accounts[0];
+  
+  // Ensure user is on Base network
+  await ensureBaseNetwork(provider);
 
   // mintWithVerifiedTx function signature
   const functionSignature = '0x' + Array.from(
@@ -135,7 +166,7 @@ export async function mintGiftCardWithVerification({ contractAddress, txHash, to
   ];
   
   // Send the transaction
-  const mintTxHash = await frame.sdk.wallet.ethProvider.request({
+  const mintTxHash = await provider.request({
     method: 'eth_sendTransaction',
     params: [{
       from,
