@@ -17,24 +17,37 @@ export async function extractTokenIdFromTx(txHash) {
       return null;
     }
     
-    // First get the transaction receipt
-    const receiptResponse = await fetch(`https://base-mainnet.g.alchemy.com/v2/${apiKey}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'eth_getTransactionReceipt',
-        params: [txHash]
-      })
-    });
+    // Get the transaction receipt with retry logic
+    let receiptData = null;
+    let attempts = 0;
+    const maxAttempts = 5;
+    const delayMs = 2000; // 2 second delay
+
+    while (!receiptData?.result && attempts < maxAttempts) {
+      attempts++;
+      const receiptResponse = await fetch(`https://base-mainnet.g.alchemy.com/v2/${apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'eth_getTransactionReceipt',
+          params: [txHash]
+        })
+      });
+      
+      receiptData = await receiptResponse.json();
+      
+      if (!receiptData.result && attempts < maxAttempts) {
+        console.log(`Receipt not found for token ID extraction (attempt ${attempts}/${maxAttempts}), retrying in ${delayMs}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
     
-    const receiptData = await receiptResponse.json();
-    
-    if (!receiptData.result) {
-      console.error('No transaction receipt found', receiptData);
+    if (!receiptData || !receiptData.result) {
+      console.error(`No transaction receipt found for token ID extraction after ${maxAttempts} attempts`, receiptData);
       return null;
     }
     

@@ -64,7 +64,7 @@ export async function POST(request) {
     
     if (emailApiUrl && emailApiKey) {
       console.log(`Sending gift card email to ${email} for token ${tokenId}`);
-      const emailResponse = await fetch(emailApiUrl, {
+      const emailResponse = await fetch(`${emailApiUrl}/send-gift-card`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
