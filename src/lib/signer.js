@@ -2,7 +2,7 @@
  * Utilities for transaction verification and signature generation
  */
 import { keccak256, encodePacked } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
+import { privateKeyToAccount, sign } from 'viem/accounts';
 
 /**
  * Verify a HIGHER token transfer transaction
@@ -180,8 +180,8 @@ export async function generateMintSignature(txHash, minterAddress, tokenId) {
     // Hash the packed data (equivalent to keccak256 in Solidity)
     const messageHash = keccak256(packedData);
 
-    // Sign the hash directly (contract uses tryRecover on the hash)
-    const signature = await account.signHash(messageHash);
+    // Sign the hash directly using the sign utility
+    const signature = await sign({ hash: messageHash, privateKey });
 
     console.log('[DEBUG viem signer] Hashing Data:', { txHashHex, minterAddress, tokenId: BigInt(tokenId) });
     console.log('[DEBUG viem signer] Message Hash:', messageHash);
