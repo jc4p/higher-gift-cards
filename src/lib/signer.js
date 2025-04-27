@@ -147,11 +147,11 @@ export async function verifyHigherTransfer(txHash, recipient, amount, sender) {
 /**
  * Generate a signature for verified minting
  * @param {string} txHash - The verified transaction hash
- * @param {string} recipient - The recipient address that will mint the NFT
+ * @param {string} minterAddress - The address that will call the mint function (msg.sender)
  * @param {number} tokenId - The token ID to mint
  * @returns {Promise<string>} - The signature
  */
-export async function generateMintSignature(txHash, recipient, tokenId) {
+export async function generateMintSignature(txHash, minterAddress, tokenId) {
   try {
     const privateKey = process.env.SIGNER_PRIVATE_KEY;
     if (!privateKey) {
@@ -176,7 +176,7 @@ export async function generateMintSignature(txHash, recipient, tokenId) {
       [
         `\x19Ethereum Signed Message:\n${messageLength}`,
         txHashHex,
-        recipient,
+        minterAddress,
         tokenId
       ]
     );

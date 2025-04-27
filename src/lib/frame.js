@@ -1,5 +1,6 @@
 import * as frame from '@farcaster/frame-sdk';
 import { getBytes, hexlify, zeroPad, toBigInt } from 'ethers'; // Import ethers v6 functions
+import { encodeFunctionData, parseAbiItem } from 'viem'; // Import viem functions
 
 // Base Mainnet chain ID
 const BASE_CHAIN_ID = 8453;
@@ -142,7 +143,7 @@ export async function transferHigher({ recipient, amount, tokenAddress }) {
  * @returns {Promise<{txHash: string, from: string}>} - Transaction hash and sender address
  */
 export async function mintGiftCardWithVerification({ contractAddress, txHash, tokenId, signature }) {
-  console.log('mintGiftCardWithVerification called with:', { contractAddress, txHash, tokenId, signature });
+  // console.log('mintGiftCardWithVerification called with:', { contractAddress, txHash, tokenId, signature }); // Keep if needed
 
   if (!frame.sdk || !frame.sdk.wallet || !frame.sdk.wallet.ethProvider) {
     throw new Error('Frame SDK not initialized');
@@ -162,51 +163,44 @@ export async function mintGiftCardWithVerification({ contractAddress, txHash, to
   // Ensure user is on Base network
   await ensureBaseNetwork(provider);
 
-  const functionSelector = '0x981dde11';
+  // ---- Start Viem Encoding ----
 
+  // Ensure txHash is 0x prefixed and correct length (viem might be less strict, but good practice)
   const formattedTxHash = (txHash.startsWith('0x') ? txHash : `0x${txHash}`);
   if (formattedTxHash.length !== 66) {
-      throw new Error('Invalid txHash length for bytes32');
+      // Consider letting viem handle errors, or keep validation
+      console.warn('Potentially invalid txHash length for bytes32, letting viem handle it.');
   }
-  const encodedTxHash = formattedTxHash.slice(2); // Remove '0x'
 
-  // Ensure tokenId is a number or BigInt before converting
-  const tokenIdBigInt = toBigInt(tokenId);
-  const encodedTokenId = zeroPad(hexlify(tokenIdBigInt), 32).slice(2);
+  // Convert tokenId to BigInt (viem expects BigInt for uint256)
+  const tokenIdBigInt = BigInt(tokenId); 
 
-  // 3. Prepare dynamic parameter (signature)
-  console.log('[DEBUG] Signature right before getBytes:', signature); // Add log immediately before
-  const signatureBytes = getBytes(signature); // Convert hex string to byte array
-  console.log('[DEBUG] Signature after getBytes call'); // Add log immediately after
-  const signatureLength = signatureBytes.length;
+  // Ensure signature is 0x prefixed (viem expects hex strings)
+  const formattedSignature = signature.startsWith('0x') ? signature : `0x${signature}`;
 
-  // 4. Calculate offset and length for the dynamic parameter
-  // Offset starts after the static parameters (selector isn't part of args)
-  // 3 params = 3 * 32 bytes = 96 bytes offset
-  const signatureOffset = 96;
-  const encodedSignatureOffset = zeroPad(hexlify(signatureOffset), 32).slice(2);
-  const encodedSignatureLength = zeroPad(hexlify(signatureLength), 32).slice(2);
+  // Define the function ABI fragment (assuming function name is mintWithVerifiedTx)
+  // You might need to adjust the function name if it's different.
+  // The selector 0x981dde11 usually corresponds to keccak256("mintWithVerifiedTx(bytes32,uint256,bytes)")
+  const functionAbi = parseAbiItem('function mintWithVerifiedTx(bytes32 txHash, uint256 tokenId, bytes signature)');
 
-  // 5. Encode signature data (hex string without '0x', padded to 32-byte boundary)
-  let encodedSignatureData = signature.startsWith('0x') ? signature.slice(2) : signature;
-  const paddingLength = (32 - (signatureLength % 32)) % 32;
-  encodedSignatureData += '00'.repeat(paddingLength);
+  // Encode the function call data using viem
+  const data = encodeFunctionData({
+    abi: [functionAbi], // encodeFunctionData expects an array of ABI items
+    functionName: 'mintWithVerifiedTx', 
+    args: [formattedTxHash, tokenIdBigInt, formattedSignature],
+  });
 
-  // 6. Concatenate everything
-  const data = functionSelector +
-               encodedTxHash +
-               encodedTokenId +
-               encodedSignatureOffset +
-               encodedSignatureLength +
-               encodedSignatureData;
+  console.log('[DEBUG] Viem encoded data:', data); // Log the generated data
+
+  // ---- End Viem Encoding ----
   
-  // Send the transaction
+  // Send the transaction using the existing provider.request
   const mintTxHash = await provider.request({
     method: 'eth_sendTransaction',
     params: [{
       from,
       to: contractAddress,
-      data,
+      data, // Use the viem-generated data
       value: '0x0'
     }]
   });
