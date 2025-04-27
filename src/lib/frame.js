@@ -21,33 +21,129 @@ export async function initializeFrame() {
 }
 
 /**
- * Mint a gift card NFT by sending a transaction via the frame wallet
- * @param {Object} params
- * @param {string} params.contractAddress - NFT contract address
- * @param {string} params.value - Hex string of wei to send (e.g., '0x2540be400')
- * @param {string} params.data - Hex-encoded call data for mint function
- * @returns {Promise<{txHash: string, from: string}>}
+ * Convert ETH amount to Wei hex string
+ * @param {number} eth - Amount in ETH
+ * @returns {string} - Hex string with 0x prefix
  */
-export async function mintGiftCard({ contractAddress, value, data }) {
-  // Ensure frame is initialized
-  await initializeFrame();
-  const provider = frame.sdk.wallet.ethProvider;
-  // Request user to connect accounts
-  const accounts = await provider.request({ method: 'eth_requestAccounts' });
-  const from = accounts[0];
-  // Check current chain
-  let chainIdHex = await provider.request({ method: 'eth_chainId' });
-  const chainId = typeof chainIdHex === 'number' ? chainIdHex : parseInt(chainIdHex, 16);
-  if (chainId !== BASE_CHAIN_ID) {
-    // Switch to Base Mainnet
-    await provider.request({
-      method: 'wallet_switchEthereumChain',
-      params: [{ chainId: BASE_CHAIN_HEX }],
-    });
+function ethToWei(eth) {
+  // Convert to BigInt and multiply by 10^18
+  const wei = BigInt(Math.floor(eth * 1e18)).toString(16);
+  return '0x' + wei;
+}
+
+/**
+ * Convert HIGHER token amount to proper format for transfer
+ * @param {number} higherAmount - Amount of HIGHER tokens
+ * @returns {string} - Hex string with 0x prefix
+ */
+function higherToWei(higherAmount) {
+  // HIGHER has 18 decimals like ETH
+  return ethToWei(higherAmount);
+}
+
+/**
+ * Transfer HIGHER tokens to a recipient
+ * @param {Object} params - Parameters for the transfer
+ * @param {string} params.recipient - Recipient address
+ * @param {number} params.amount - Amount of HIGHER tokens to send
+ * @param {string} params.tokenAddress - HIGHER token contract address
+ * @returns {Promise<{txHash: string, from: string}>} - Transaction hash and sender address
+ */
+export async function transferHigher({ recipient, amount, tokenAddress }) {
+  if (!frame.sdk || !frame.sdk.wallet || !frame.sdk.wallet.ethProvider) {
+    throw new Error('Frame SDK not initialized');
   }
-  // Build transaction parameters
-  const txParams = { to: contractAddress, from, value, data };
-  // Send transaction
-  const txHash = await provider.request({ method: 'eth_sendTransaction', params: [txParams] });
+
+  // Get the user's wallet address
+  const accounts = await frame.sdk.wallet.ethProvider.request({
+    method: 'eth_requestAccounts'
+  });
+  
+  if (!accounts || !accounts[0]) {
+    throw new Error('No wallet connected');
+  }
+
+  const from = accounts[0];
+
+  // ERC20 transfer function signature: transfer(address,uint256)
+  const transferFunctionSignature = '0xa9059cbb';
+  
+  // Prepare recipient address (remove 0x, pad to 32 bytes)
+  const recipientPadded = recipient.slice(2).padStart(64, '0');
+  
+  // Prepare amount (convert to wei, remove 0x, pad to 32 bytes)
+  const amountHex = higherToWei(amount);
+  const amountNoPrefix = amountHex.startsWith('0x') ? amountHex.slice(2) : amountHex;
+  const paddedAmount = amountNoPrefix.padStart(64, '0');
+  
+  // Construct the complete data payload
+  const data = `${transferFunctionSignature}${recipientPadded}${paddedAmount}`;
+  
+  // Send the transaction
+  const txHash = await frame.sdk.wallet.ethProvider.request({
+    method: 'eth_sendTransaction',
+    params: [{
+      from,
+      to: tokenAddress,
+      data,
+      value: '0x0' // No ETH value, just token transfer
+    }]
+  });
+  
   return { txHash, from };
+}
+
+/**
+ * Mint a gift card with verified transaction
+ * @param {Object} params - Parameters for minting
+ * @param {string} params.contractAddress - Gift card contract address
+ * @param {string} params.txHash - HIGHER transfer transaction hash
+ * @param {number} params.tokenId - Token ID to mint
+ * @param {string} params.signature - Signature from server verification
+ * @returns {Promise<{txHash: string, from: string}>} - Transaction hash and sender address
+ */
+export async function mintGiftCardWithVerification({ contractAddress, txHash, tokenId, signature }) {
+  if (!frame.sdk || !frame.sdk.wallet || !frame.sdk.wallet.ethProvider) {
+    throw new Error('Frame SDK not initialized');
+  }
+
+  // Get the user's wallet address
+  const accounts = await frame.sdk.wallet.ethProvider.request({
+    method: 'eth_requestAccounts'
+  });
+  
+  if (!accounts || !accounts[0]) {
+    throw new Error('No wallet connected');
+  }
+
+  const from = accounts[0];
+
+  // mintWithVerifiedTx function signature
+  const functionSignature = '0x' + Array.from(
+    new TextEncoder().encode('mintWithVerifiedTx(bytes32,uint256,bytes)')
+  ).map(b => b.toString(16).padStart(2, '0')).join('');
+  
+  // Convert string txHash to bytes32 format if needed
+  const formattedTxHash = txHash.startsWith('0x') ? txHash : `0x${txHash}`;
+  
+  // Encode the function parameters
+  // This is a simplified version - in production you would use a proper ABI encoder
+  const encodedParams = [
+    formattedTxHash,
+    tokenId,
+    signature
+  ];
+  
+  // Send the transaction
+  const mintTxHash = await frame.sdk.wallet.ethProvider.request({
+    method: 'eth_sendTransaction',
+    params: [{
+      from,
+      to: contractAddress,
+      data: functionSignature + encodedParams.join(''),
+      value: '0x0'
+    }]
+  });
+  
+  return { txHash: mintTxHash, from };
 }

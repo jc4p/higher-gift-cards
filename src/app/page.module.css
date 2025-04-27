@@ -182,7 +182,7 @@
   right: 0;
   background-color: rgba(0, 0, 0, 0.8);
   border-top: 2px solid rgba(139, 69, 19, 0.8);
-  padding: 10px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -200,12 +200,30 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
+  margin-top: 4px;
 }
 
 .priceLine {
-  margin: 0.1rem 0;
-  font-size: 0.9rem;
-  color: #ccc;
+  margin: 0.15rem 0;
+  font-size: 1.1rem;
+  color: white;
+  font-weight: bold;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+.priceHigher {
+  font-size: 1.25rem;
+  color: white;
+  letter-spacing: 0.02em;
+}
+
+.priceUsd {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(139, 69, 19, 0.6);
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-top: 4px;
 }
 
 /* Pricing table */
@@ -240,5 +258,63 @@
 .currentRow {
   background-color: rgba(139, 69, 19, 0.3) !important;
   font-weight: bold;
+}
+
+/* Email collection modal */
+.emailDescription {
+  margin-bottom: 20px;
+  color: #ccc;
+  font-size: 0.95rem;
+}
+
+.emailForm {
+  width: 100%;
+}
+
+.formGroup {
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.85rem;
+  color: #ccc;
+}
+
+.emailInput {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #333;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.emailError {
+  margin-top: 5px;
+  color: #ff4d4d;
+  font-size: 0.8rem;
+}
+
+.emailSubmitButton {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 4px;
+  background-color: #8b4513;
+  color: white;
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+
+.emailDisclaimer {
+  font-size: 0.75rem;
+  color: #777;
+  text-align: center;
 }
 
