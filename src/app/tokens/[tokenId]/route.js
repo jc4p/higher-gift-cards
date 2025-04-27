@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getNftMetadata } from '@/lib/db';
 
 // Base URL for accessing resources
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://yourdomain.com';
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://erew-higher.kasra.codes';
 
 // Specify Edge runtime for better performance and caching
 export const runtime = 'edge'; 
@@ -71,10 +71,10 @@ export async function GET(request, { params }) {
     
     // Format metadata according to OpenSea standards
     const erc721Metadata = {
-      name: `Erewhon Gift Card #${tokenId}`,
+      name: `$HIGHER Erewhon Gift Card #${tokenId}`,
       description: `The ${ordinalText} Erewhon Gift Card ever purchased with cryptocurrency. Value: $25. Limited edition collection of 5 cards.`,
-      image: `${BASE_URL}${metadata.image_url}`,
-      external_url: `${BASE_URL}/card/${tokenId}`,
+      image: `${metadata.image_url}`,
+      external_url: `${BASE_URL}/tokens/${tokenId}`,
       attributes: [
         {
           trait_type: 'Face Value',
