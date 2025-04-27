@@ -1,5 +1,5 @@
 import * as frame from '@farcaster/frame-sdk';
-import { ethers } from 'ethers'; // Import ethers for utilities
+import { ethers, getBytes, hexlify, zeroPad } from 'ethers'; // Import ethers v6 functions
 
 // Base Mainnet chain ID
 const BASE_CHAIN_ID = 8453;
@@ -170,18 +170,18 @@ export async function mintGiftCardWithVerification({ contractAddress, txHash, to
 
   // Ensure tokenId is a number or BigInt before converting
   const tokenIdBN = ethers.BigNumber.from(tokenId);
-  const encodedTokenId = ethers.utils.hexZeroPad(tokenIdBN.toHexString(), 32).slice(2);
+  const encodedTokenId = zeroPad(hexlify(tokenIdBN), 32).slice(2);
 
   // 3. Prepare dynamic parameter (signature)
-  const signatureBytes = ethers.utils.arrayify(signature); // Convert hex string to byte array
+  const signatureBytes = getBytes(signature); // Convert hex string to byte array
   const signatureLength = signatureBytes.length;
 
   // 4. Calculate offset and length for the dynamic parameter
   // Offset starts after the static parameters (selector isn't part of args)
   // 3 params = 3 * 32 bytes = 96 bytes offset
   const signatureOffset = 96;
-  const encodedSignatureOffset = ethers.utils.hexZeroPad(ethers.utils.hexlify(signatureOffset), 32).slice(2);
-  const encodedSignatureLength = ethers.utils.hexZeroPad(ethers.utils.hexlify(signatureLength), 32).slice(2);
+  const encodedSignatureOffset = zeroPad(hexlify(signatureOffset), 32).slice(2);
+  const encodedSignatureLength = zeroPad(hexlify(signatureLength), 32).slice(2);
 
   // 5. Encode signature data (hex string without '0x', padded to 32-byte boundary)
   let encodedSignatureData = signature.startsWith('0x') ? signature.slice(2) : signature;

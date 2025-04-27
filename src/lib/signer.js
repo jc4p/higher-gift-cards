@@ -1,7 +1,7 @@
 /**
  * Utilities for transaction verification and signature generation
  */
-import { ethers } from 'ethers';
+import { ethers, getBytes } from 'ethers';
 
 /**
  * Verify a HIGHER token transfer transaction
@@ -171,7 +171,7 @@ export async function generateMintSignature(txHash, recipient, tokenId) {
     // Use ethers.js to sign the message
     // We need to match exactly what the contract expects
     const messageLength = 84; // Length specified in the contract
-    const message = ethers.utils.solidityPack(
+    const message = ethers.solidityPacked(
       ['string', 'bytes32', 'address', 'uint256'],
       [
         `\x19Ethereum Signed Message:\n${messageLength}`,
@@ -182,10 +182,10 @@ export async function generateMintSignature(txHash, recipient, tokenId) {
     );
     
     // Hash the message
-    const messageHash = ethers.utils.keccak256(message);
+    const messageHash = ethers.keccak256(message);
     
-    // Sign the raw hash (not the message itself)
-    const signature = await wallet.signDigest(messageHash);
+    // Sign the raw hash (not the message itself) using ethers v6 syntax
+    const signature = await wallet.signMessage(getBytes(messageHash));
     
     return signature;
   } catch (error) {
