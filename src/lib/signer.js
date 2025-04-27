@@ -171,8 +171,8 @@ export async function generateMintSignature(txHash, recipient, tokenId) {
     // Hash the message
     const messageHash = ethers.utils.keccak256(message);
     
-    // Sign the hash
-    const signature = await wallet.signMessage(ethers.utils.arrayify(messageHash));
+    // Sign the raw hash (not the message itself)
+    const signature = await wallet.signDigest(messageHash);
     
     return signature;
   } catch (error) {
