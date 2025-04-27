@@ -1,4 +1,5 @@
 import * as frame from '@farcaster/frame-sdk';
+import { ethers } from 'ethers'; // Import ethers for utilities
 
 // Base Mainnet chain ID
 const BASE_CHAIN_ID = 8453;
@@ -159,21 +160,41 @@ export async function mintGiftCardWithVerification({ contractAddress, txHash, to
   // Ensure user is on Base network
   await ensureBaseNetwork(provider);
 
-  // mintWithVerifiedTx function signature
-  const functionSignature = '0x' + Array.from(
-    new TextEncoder().encode('mintWithVerifiedTx(bytes32,uint256,bytes)')
-  ).map(b => b.toString(16).padStart(2, '0')).join('');
-  
-  // Convert string txHash to bytes32 format if needed
-  const formattedTxHash = txHash.startsWith('0x') ? txHash : `0x${txHash}`;
-  
-  // Encode the function parameters
-  // This is a simplified version - in production you would use a proper ABI encoder
-  const encodedParams = [
-    formattedTxHash,
-    tokenId,
-    signature
-  ];
+  const functionSelector = '0x981dde11';
+
+  const formattedTxHash = (txHash.startsWith('0x') ? txHash : `0x${txHash}`);
+  if (formattedTxHash.length !== 66) {
+      throw new Error('Invalid txHash length for bytes32');
+  }
+  const encodedTxHash = formattedTxHash.slice(2); // Remove '0x'
+
+  // Ensure tokenId is a number or BigInt before converting
+  const tokenIdBN = ethers.BigNumber.from(tokenId);
+  const encodedTokenId = ethers.utils.hexZeroPad(tokenIdBN.toHexString(), 32).slice(2);
+
+  // 3. Prepare dynamic parameter (signature)
+  const signatureBytes = ethers.utils.arrayify(signature); // Convert hex string to byte array
+  const signatureLength = signatureBytes.length;
+
+  // 4. Calculate offset and length for the dynamic parameter
+  // Offset starts after the static parameters (selector isn't part of args)
+  // 3 params = 3 * 32 bytes = 96 bytes offset
+  const signatureOffset = 96;
+  const encodedSignatureOffset = ethers.utils.hexZeroPad(ethers.utils.hexlify(signatureOffset), 32).slice(2);
+  const encodedSignatureLength = ethers.utils.hexZeroPad(ethers.utils.hexlify(signatureLength), 32).slice(2);
+
+  // 5. Encode signature data (hex string without '0x', padded to 32-byte boundary)
+  let encodedSignatureData = signature.startsWith('0x') ? signature.slice(2) : signature;
+  const paddingLength = (32 - (signatureLength % 32)) % 32;
+  encodedSignatureData += '00'.repeat(paddingLength);
+
+  // 6. Concatenate everything
+  const data = functionSelector +
+               encodedTxHash +
+               encodedTokenId +
+               encodedSignatureOffset +
+               encodedSignatureLength +
+               encodedSignatureData;
   
   // Send the transaction
   const mintTxHash = await provider.request({
@@ -181,7 +202,7 @@ export async function mintGiftCardWithVerification({ contractAddress, txHash, to
     params: [{
       from,
       to: contractAddress,
-      data: functionSignature + encodedParams.join(''),
+      data,
       value: '0x0'
     }]
   });
