@@ -1,5 +1,5 @@
 import * as frame from '@farcaster/frame-sdk';
-import { ethers, getBytes, hexlify, zeroPad } from 'ethers'; // Import ethers v6 functions
+import { getBytes, hexlify, zeroPad, toBigInt } from 'ethers'; // Import ethers v6 functions
 
 // Base Mainnet chain ID
 const BASE_CHAIN_ID = 8453;
@@ -169,8 +169,8 @@ export async function mintGiftCardWithVerification({ contractAddress, txHash, to
   const encodedTxHash = formattedTxHash.slice(2); // Remove '0x'
 
   // Ensure tokenId is a number or BigInt before converting
-  const tokenIdBN = ethers.BigNumber.from(tokenId);
-  const encodedTokenId = zeroPad(hexlify(tokenIdBN), 32).slice(2);
+  const tokenIdBigInt = toBigInt(tokenId);
+  const encodedTokenId = zeroPad(hexlify(tokenIdBigInt), 32).slice(2);
 
   // 3. Prepare dynamic parameter (signature)
   const signatureBytes = getBytes(signature); // Convert hex string to byte array
