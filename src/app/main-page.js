@@ -6,7 +6,7 @@ import { transferHigher, mintGiftCardWithVerification } from '@/lib/frame';
 import * as frame from '@farcaster/frame-sdk';
 
 // Constants from environment variables
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x0d8Cd006C310d537Bd84ba5d649c93EC16abAB97';
+const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0xca1b1846726f726aee0f4e4ca7d9e8f9234bc615';
 const HIGHER_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_HIGHER_TOKEN_ADDRESS || '0x0578d8a44db98b23bf096a382e016e29a5ce0ffe';
 const HIGHER_RECIPIENT_ADDRESS = process.env.NEXT_PUBLIC_HIGHER_RECIPIENT_ADDRESS || '0x0db12C0A67bc5B8942ea3126a465d7a0b23126C7';
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://erew-higher.kasra.codes';
