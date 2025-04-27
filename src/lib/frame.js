@@ -142,6 +142,8 @@ export async function transferHigher({ recipient, amount, tokenAddress }) {
  * @returns {Promise<{txHash: string, from: string}>} - Transaction hash and sender address
  */
 export async function mintGiftCardWithVerification({ contractAddress, txHash, tokenId, signature }) {
+  console.log('mintGiftCardWithVerification called with:', { contractAddress, txHash, tokenId, signature });
+
   if (!frame.sdk || !frame.sdk.wallet || !frame.sdk.wallet.ethProvider) {
     throw new Error('Frame SDK not initialized');
   }

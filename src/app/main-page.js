@@ -128,6 +128,8 @@ export default function MainPage() {
       });
       
       const verifyData = await verifyResponse.json();
+
+      console.log('Received verification data:', verifyData);
       
       if (!verifyData.verified || !verifyData.signature) {
         throw new Error(verifyData.error || 'Failed to verify transfer');
